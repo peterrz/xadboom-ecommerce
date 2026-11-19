@@ -24,6 +24,21 @@ domain and the session cookie needs no CORS setup.
    (`pnpm --filter @xadboom/db seed`, with `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` set; the seed refuses to run in
    production without a password). Remove the sample pieces in the admin afterwards.
 
+### Single-container option (Darkube / one app)
+
+The last stage of the `Dockerfile` (`all`) is the default target: build without `--target` and you get **web + api + automatic
+migrations in one container**. Public port `3000`, health check `GET /healthz`, no command or arguments to set.
+
+* Needs: a managed PostgreSQL (separate service, so deploys never touch the data) and a persistent disk mounted at
+  `/data/uploads`.
+* Variables: `DATABASE_URL`, `AUTH_SECRET`, `COOKIE_SECURE=true`, `APP_URL`, `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`
+  (`API_URL` is already `http://127.0.0.1:4000` inside the image).
+* Resources (estimate): app 0.5 vCPU / 1 GB RAM minimum, 1 vCPU / 2 GB recommended; disk 2 GB+ for uploads;
+  database 0.5 vCPU / 1 GB RAM / 5 GB disk.
+* Faster releases: web and api compile in separate Docker stages, so a web-only change reuses the cached api build and the
+  reverse, as long as the platform keeps the layer cache.
+* First admin: in the container terminal run `cd /app/packages/db && pnpm exec tsx prisma/seed.ts` once.
+
 If Hamravesh runs Docker Compose files directly you can instead use `docker-compose.yml` (`docker compose up -d --build`),
 which starts the database, migration, API and web together.
 

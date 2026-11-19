@@ -29,7 +29,7 @@ For hot reload use `pnpm dev:api` and `pnpm dev:web` instead of the `start:*` co
 ```
 docker compose up -d --build   # db + migrations + api + web on :3000
 ```
-One `Dockerfile`, targets: `api`, `web`, `migrate`. Hamravesh: deploy `api` and `web` as two apps (set `API_URL`
+One `Dockerfile`, targets: `api`, `web`, `migrate`, and `all` (default: web + api + migrations in one container, see docs/DEPLOYMENT.md). Hamravesh: deploy `api` and `web` as two apps (set `API_URL`
 on web to the API's internal address) and run `migrate` as a pre-release job.
 
 ## Scripts

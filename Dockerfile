@@ -64,3 +64,34 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD wget -qO- http://127.0.0.1:3000/healthz || exit 1
 CMD ["node", "apps/web/server.js"]
+
+# ---- ALL-IN-ONE: web + api + auto-migrate in ONE container (default target, used by Darkube) ----
+# Public port 3000 (web). The web proxies server-side to the API on 127.0.0.1:4000 inside the same container.
+# Needs an external PostgreSQL (DATABASE_URL) and a persistent disk mounted at /data/uploads.
+#
+# Build cache: web and api are compiled in SEPARATE stages that only copy their own sources.
+# Change only apps/web  -> only `web-build` re-runs; the api/db layers come from cache.
+# Change only apps/api or packages/db -> only `api-build` re-runs; the web build comes from cache.
+# (Needs the platform's builder to keep the layer cache between builds.)
+FROM deps AS api-build
+COPY packages/db packages/db
+COPY apps/api apps/api
+RUN pnpm --filter @xadboom/db build && pnpm --filter @xadboom/api build
+
+FROM deps AS web-build
+COPY apps/web apps/web
+RUN pnpm --filter @xadboom/web build
+
+FROM api-build AS all
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 HOSTNAME=0.0.0.0 API_PORT=4000 \
+    API_URL=http://127.0.0.1:4000 UPLOAD_DIR=/data/uploads
+COPY --from=web-build /app/apps/web/.next/standalone /app/web/
+COPY --from=web-build /app/apps/web/.next/static /app/web/apps/web/.next/static
+COPY --from=web-build /app/apps/web/public /app/web/apps/web/public
+COPY scripts/start-all.sh /app/start-all.sh
+RUN mkdir -p /data/uploads && sed -i 's/\r$//' /app/start-all.sh && chmod +x /app/start-all.sh
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/healthz || exit 1
+CMD ["sh", "/app/start-all.sh"]
