@@ -24,15 +24,18 @@ async function bootstrap() {
   });
   app.enableShutdownHooks();
 
-  const docs = SwaggerModule.createDocument(
-    app,
-    new DocumentBuilder().setTitle("Xadboom API").setVersion("0.1").addCookieAuth("xb_session").build(),
-  );
-  SwaggerModule.setup("api/docs", app, docs);
+  // the interactive API docs list every endpoint: only outside production, or when ENABLE_DOCS=true
+  if (process.env.NODE_ENV !== "production" || process.env.ENABLE_DOCS === "true") {
+    const docs = SwaggerModule.createDocument(
+      app,
+      new DocumentBuilder().setTitle("Xadboom API").setVersion("0.1").addCookieAuth("xb_session").build(),
+    );
+    SwaggerModule.setup("api/docs", app, docs);
+  }
 
   const port = Number(process.env.API_PORT ?? 4000);
   await app.listen(port, "0.0.0.0");
-  console.log(`Xadboom API listening on :${port} (docs: /api/docs)`);
+  console.log(`Xadboom API listening on :${port} `);
 }
 
 bootstrap();

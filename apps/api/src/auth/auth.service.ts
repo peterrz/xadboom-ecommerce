@@ -7,6 +7,9 @@ import { PrismaService } from "../prisma/prisma.module";
 export const SESSION_COOKIE = "xb_session";
 export const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
+// verified against when the email is unknown, so "no such user" costs the same time as "wrong password"
+const DUMMY_HASH = hashPassword("not-a-real-password");
+
 export type AuthUser = { id: string; email: string; name: string; role: Role };
 
 @Injectable()
@@ -19,7 +22,7 @@ export class AuthService {
 
   async login(email: string, password: string) {
     const user = await this.prisma.db.user.findUnique({ where: { email } });
-    const ok = user ? await verifyPassword(password, user.passwordHash) : false;
+    const ok = await verifyPassword(password, user ? user.passwordHash : await DUMMY_HASH);
     if (!user || !ok) throw new UnauthorizedException("Incorrect email or password.");
     await this.prisma.db.user.update({ where: { id: user.id }, data: { lastActiveAt: new Date() } });
     const token = await this.jwt.signAsync({ sub: user.id });

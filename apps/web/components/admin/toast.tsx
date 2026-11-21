@@ -21,6 +21,8 @@ const label = (path: string) => path.replace(/([a-z])([A-Z])/g, "$1 $2").replace
 export function apiErrorMessage(json: unknown, fallback = "Something went wrong. Please try again."): string {
   const j = json as { message?: string; issues?: { path?: string; message?: string }[] } | null;
   if (j?.issues?.length) return j.issues.map((i) => (i.path ? `${label(i.path)}: ${i.message}` : i.message)).join("\n");
+  if (j?.message === "Unauthorized") return "Your session has expired. Please sign in again.";
+  if (j?.message === "Forbidden resource") return "You do not have permission to do this.";
   return j?.message ?? fallback;
 }
 

@@ -6,7 +6,7 @@ const field =
   "w-full rounded-lg border border-[#d8c3bc] bg-white px-4 py-3 text-sm outline-none focus:border-[#0a0a0a]";
 
 // only same-site relative paths, never //host or absolute URLs
-const safeNext = (next: string) => (next.startsWith("/") && !next.startsWith("//") ? next : "/admin");
+const safeNext = (next: string) => (next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/admin");
 
 export function LoginForm({ next, notice }: { next: string; notice?: string }) {
   const [error, setError] = useState<string | undefined>(notice);

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   // absolute URLs for canonical / Open Graph tags
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   title: "Xadboom Design System & Atelier",
+  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }] },
   description:
     "Curated interior architecture assets, collectible furniture catalog, and curatorial atelier administration portal.",
 };
