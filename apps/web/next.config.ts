@@ -30,6 +30,8 @@ const securityHeaders = [
 
 const config: NextConfig = {
   output: "standalone",
+  // Docker/CI builders can report dozens of CPUs but cap threads; NEXT_BUILD_CPUS limits the build workers.
+  ...(process.env.NEXT_BUILD_CPUS ? { experimental: { cpus: Number(process.env.NEXT_BUILD_CPUS) } } : {}),
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

@@ -82,7 +82,7 @@ FROM deps AS web-build
 COPY apps/web apps/web
 # Darkube's builder limits threads/processes: Next 16's default Turbopack build crashed there with
 # "OS can't spawn worker thread (os error 11)". Webpack mode with few threads builds fine.
-ENV RAYON_NUM_THREADS=2 UV_THREADPOOL_SIZE=4
+ENV RAYON_NUM_THREADS=2 UV_THREADPOOL_SIZE=4 NEXT_BUILD_CPUS=2
 RUN pnpm --filter @xadboom/web exec next build --webpack
 
 FROM api-build AS all
