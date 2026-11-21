@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { btnGhost, btnPrimary, inputCls, labelCls, surface } from "./ui";
+import { apiErrorMessage, Spinner, toast } from "./toast";
 
 export type Field = {
   name: string;
@@ -50,7 +51,12 @@ export function EntityForm({
     body.append("file", file);
     const res = await fetch("/api/admin/uploads/image", { method: "POST", body });
     const json = await res.json().catch(() => null);
-    if (!res.ok) return setError(json?.message ?? "Upload failed");
+    if (!res.ok) {
+      const m = apiErrorMessage(json, "Upload failed");
+      setError(m);
+      toast.error(m);
+      return;
+    }
     set(name, json.url);
   }
 
@@ -69,16 +75,21 @@ export function EntityForm({
       const res = await fetch(submitUrl, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const json = await res.json().catch(() => null);
       if (!res.ok) {
-        const issue = json?.issues?.[0];
-        setError(issue ? `${issue.path || "form"}: ${issue.message}` : (json?.message ?? "Could not save"));
+        const m = apiErrorMessage(json, "Could not save");
+        setError(m);
+        toast.error(m);
         return;
       }
+      toast.success("Saved.");
       const note = successMessage?.replace(/\{(\w+)\}/g, (_, k) => String(json?.[k] ?? ""));
       if (note) setMessage(note);
       else {
         router.push(backHref);
         router.refresh();
       }
+    } catch {
+      setError("Could not reach the server.");
+      toast.error("Could not reach the server.");
     } finally {
       setBusy(false);
     }
@@ -148,10 +159,11 @@ export function EntityForm({
 
       {!message && (
         <div className="flex items-center gap-3">
-          <button type="submit" disabled={busy} className={`${btnPrimary} disabled:opacity-60`}>
+          <button type="submit" disabled={busy} className={`${btnPrimary} disabled:opacity-60 disabled:cursor-not-allowed`}>
+            {busy && <Spinner />}
             {busy ? "Saving…" : submitLabel}
           </button>
-          <button type="button" className={btnGhost} onClick={() => router.push(backHref)}>
+          <button type="button" disabled={busy} className={`${btnGhost} disabled:opacity-50`} onClick={() => router.push(backHref)}>
             Cancel
           </button>
           {deleteUrl && (
@@ -164,7 +176,11 @@ export function EntityForm({
                 if (res.ok) {
                   router.push(backHref);
                   router.refresh();
-                } else setError((await res.json().catch(() => null))?.message ?? "Could not delete");
+                } else {
+                  const m = apiErrorMessage(await res.json().catch(() => null), "Could not delete");
+                  setError(m);
+                  toast.error(m);
+                }
               }}
             >
               Delete

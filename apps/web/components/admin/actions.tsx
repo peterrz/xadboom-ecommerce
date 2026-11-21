@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { apiErrorMessage, toast } from "./toast";
 
 /** A button that calls the API (cookie session), then refreshes the server-rendered page. */
 export function ApiButton({
@@ -36,7 +37,9 @@ export function ApiButton({
           setBusy(false);
           if (!res.ok) {
             const j = await res.json().catch(() => null);
-            setErr(j?.message ?? "Failed");
+            const m = apiErrorMessage(j, "Failed");
+            setErr(m);
+            toast.error(m);
             return;
           }
           router.refresh();
@@ -78,8 +81,11 @@ export function InlineSelect({
           const v = e.target.value;
           const res = await fetch(url, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ [field]: v === "" ? null : v }) });
           setBusy(false);
-          if (!res.ok) setErr((await res.json().catch(() => null))?.message ?? "Failed");
-          else router.refresh();
+          if (!res.ok) {
+            const m = apiErrorMessage(await res.json().catch(() => null), "Failed");
+            setErr(m);
+            toast.error(m);
+          } else router.refresh();
         }}
       >
         {options.map((o) => (

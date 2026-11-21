@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import type { SessionUser } from "@/lib/types";
 import { SignOutButton } from "./sign-out-button";
+import { Toaster } from "./toast";
 import type { ShellCounts } from "@/lib/admin-types";
 
 const CRUMBS: [string, string[]][] = [
@@ -79,6 +80,7 @@ export function AdminShell({ user, counts, children }: { user: SessionUser; coun
         </div>
       </header>
       <div className="ml-20 pt-16 min-h-screen flex flex-col">{children}</div>
+      <Toaster />
     </div>
   );
 }

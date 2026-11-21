@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { apiErrorMessage, toast } from "./toast";
 
 type Step = { label: string; url: string; body?: unknown; confirm?: string };
 
@@ -32,7 +33,12 @@ export function OrderActions({ order, className }: { order: { id: string; status
       body: step.body ? JSON.stringify(step.body) : undefined,
     });
     setBusy(false);
-    if (!res.ok) return setErr((await res.json().catch(() => null))?.message ?? "Failed");
+    if (!res.ok) {
+      const m = apiErrorMessage(await res.json().catch(() => null), "Failed");
+      setErr(m);
+      toast.error(m);
+      return;
+    }
     router.refresh();
   }
 
