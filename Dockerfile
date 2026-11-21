@@ -26,7 +26,7 @@ COPY . .
 # DATABASE_URL is not needed at build time
 RUN pnpm --filter @xadboom/db build \
  && pnpm --filter @xadboom/api build \
- && pnpm --filter @xadboom/web build
+ && pnpm --filter @xadboom/web exec next build --webpack
 
 # ---- migrations job: has the prisma CLI and schema ----
 FROM builder AS migrate
@@ -80,7 +80,10 @@ RUN pnpm --filter @xadboom/db build && pnpm --filter @xadboom/api build
 
 FROM deps AS web-build
 COPY apps/web apps/web
-RUN pnpm --filter @xadboom/web build
+# Darkube's builder limits threads/processes: Next 16's default Turbopack build crashed there with
+# "OS can't spawn worker thread (os error 11)". Webpack mode with few threads builds fine.
+ENV RAYON_NUM_THREADS=2 UV_THREADPOOL_SIZE=4
+RUN pnpm --filter @xadboom/web exec next build --webpack
 
 FROM api-build AS all
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 \
