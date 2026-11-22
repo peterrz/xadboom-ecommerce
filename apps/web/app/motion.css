@@ -140,7 +140,8 @@
 .xdm-arrow .xdm-arrow-icon,
 .xdm-arrow > .material-symbols-outlined,
 .xdm-arrow > span:last-child {
-  transition: transform var(--xdm-dur) var(--xdm-ease-out);
+  transition: transform var(--xdm-dur) var(--xdm-ease-out),
+    translate var(--xdm-dur) var(--xdm-ease-out);
 }
 
 /* A restrained horizontal nudge; arrows never travel diagonally. */
@@ -177,8 +178,13 @@
    4. Image & card hover polish
    Slightly longer, softer easing than Tailwind's default for a calmer feel.
    -------------------------------------------------------------------------- */
+/* Tailwind v4 applies scale-*, rotate-* and translate-* through their own CSS
+   properties (not `transform`), so each must be listed here or the hover snaps. */
 [data-motion-hover] img {
   transition: transform var(--xdm-dur-slow) var(--xdm-ease-out),
+    scale var(--xdm-dur-slow) var(--xdm-ease-out),
+    translate var(--xdm-dur-slow) var(--xdm-ease-out),
+    rotate var(--xdm-dur-slow) var(--xdm-ease-out),
     filter var(--xdm-dur-slow) var(--xdm-ease-out);
 }
 
