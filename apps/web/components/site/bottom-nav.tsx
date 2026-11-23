@@ -8,7 +8,7 @@ const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 type Tab = { key: string; href?: string; icon: string; label: string; match?: (p: string) => boolean };
 
 const TABS: Tab[] = [
-  { key: "contact", href: "/contact", icon: "mail", label: "Contact", match: (p) => p.startsWith("/contact") },
+  { key: "home", href: "/", icon: "home", label: "Home", match: (p) => p === "/" },
   { key: "designers", href: "/designers", icon: "architecture", label: "Designers", match: (p) => p.startsWith("/designers") },
   { key: "shop", href: "/catalog", icon: "chair", label: "Shop", match: (p) => p.startsWith("/catalog") || p.startsWith("/product") },
   { key: "bag", icon: "shopping_bag", label: "Bag" },
@@ -44,7 +44,7 @@ export function BottomNav() {
   return (
     <>
       {/* spacer so the last section/footer is never hidden behind the bar */}
-      <div className="md:hidden" style={{ height: "calc(4.5rem + env(safe-area-inset-bottom))" }} aria-hidden="true" />
+      <div className="md:hidden" style={{ height: "calc(4.5rem + env(safe-area-inset-bottom))", backgroundColor: "#ECDAD4" }} aria-hidden="true" />
       <nav
         aria-label="Primary"
         className="xdm-bottom-nav md:hidden fixed bottom-0 inset-x-0 z-50 flex items-center gap-1 px-3 pt-2 border-t border-[#e8d6d0] backdrop-blur-md"

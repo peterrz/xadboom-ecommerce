@@ -26,7 +26,10 @@ export function LoginForm({ next, notice }: { next: string; notice?: string }) {
       if (res.status === 429) return setError("Too many attempts. Try again in 5 minutes.");
       if (!res.ok) return setError("Incorrect email or password.");
       const { user } = await res.json();
-      window.location.assign(user.role === "COLLECTOR" && next === "/admin" ? "/account" : safeNext(next));
+      // staff (admin / editor) always land in the admin panel; collectors go to their account
+      const target = safeNext(next);
+      const staff = user.role !== "COLLECTOR";
+      window.location.assign(staff ? (target.startsWith("/admin") ? target : "/admin") : target.startsWith("/admin") ? "/account" : target);
     } catch {
       setError("Could not reach the server. Try again.");
     } finally {

@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { api } from "@/lib/api";
 import { LoginForm } from "./login-form";
 
 export const metadata = { title: "Sign in — Xadboom Atelier" };
@@ -8,6 +10,11 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const { next, error } = await searchParams;
+  // already signed in: staff go straight to the admin, collectors to their account
+  if (!error) {
+    const me = await api.me();
+    if (me) redirect(me.role === "COLLECTOR" ? "/account" : "/admin");
+  }
   const notice = error === "forbidden" ? "Your account does not have access to the atelier admin." : undefined;
 
   return (
