@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { SessionUser } from "@/lib/types";
 import { SignOutButton } from "./sign-out-button";
 import { Toaster } from "./toast";
@@ -22,6 +22,7 @@ const CRUMBS: [string, string[]][] = [
 /** The single admin shell: sidebar rail + header, identical on every admin screen. */
 export function AdminShell({ user, counts, children }: { user: SessionUser; counts: ShellCounts; children: ReactNode }) {
   const pathname = usePathname();
+  const [navOpen, setNavOpen] = useState(false);
   const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
   const crumbs = (CRUMBS.find(([p]) => pathname === p || pathname.startsWith(p + "/")) ?? CRUMBS[CRUMBS.length - 1])[1];
   const initials = user.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "XB";
@@ -38,7 +39,8 @@ export function AdminShell({ user, counts, children }: { user: SessionUser; coun
   const item = "relative w-12 h-12 flex items-center justify-center transition-colors";
   return (
     <div className="theme-aOrders page-aOrders min-h-screen bg-[#F7E9E3] text-[#231A16] antialiased">
-      <aside className="fixed left-0 top-0 h-full w-20 border-r border-[#ECDAD4] z-50 flex flex-col items-center py-6 bg-[#ECDAD4]">
+      {navOpen && <div className="md:hidden fixed inset-0 z-40 bg-black/30" onClick={() => setNavOpen(false)} aria-hidden="true" />}
+      <aside className={`fixed left-0 top-0 h-full w-20 border-r border-[#ECDAD4] z-50 flex flex-col items-center py-6 max-md:py-8 bg-[#ECDAD4] max-md:overflow-y-auto max-md:transition-transform max-md:duration-200${navOpen ? "" : " max-md:-translate-x-full"}`}>
         <a href="/admin" className="mb-8 flex flex-col items-center justify-center">
           <div className="w-10 h-10 bg-[#12100E] flex items-center justify-center"><span className="font-headline font-bold tracking-widest text-[#FAF4F0]">X</span></div>
           <span className="uppercase mt-1 tracking-widest text-[9px] text-[#635D5C] font-headline">ATELIER</span>
@@ -60,26 +62,27 @@ export function AdminShell({ user, counts, children }: { user: SessionUser; coun
           </a>
         </div>
       </aside>
-      <header data-motion-header="" className="fixed top-0 left-20 right-0 h-16 border-b border-[#ECDAD4] backdrop-blur-md z-40 px-6 lg:px-8 flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.02)]" style={{ backgroundColor: "rgba(236, 218, 212, 0.95)" }}>
-        <div className="flex items-center gap-2 font-headline text-[11px] uppercase tracking-widest text-[#635D5C]">
+      <header data-motion-header="" className="fixed top-0 left-0 md:left-20 right-0 h-16 border-b border-[#ECDAD4] backdrop-blur-md z-40 px-4 sm:px-6 lg:px-8 gap-3 flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.02)]" style={{ backgroundColor: "rgba(236, 218, 212, 0.95)" }}>
+        <button type="button" aria-label="Open menu" onClick={() => setNavOpen(true)} className="md:hidden shrink-0 w-10 h-10 -ml-2 flex items-center justify-center text-[#231A16]"><span className="material-symbols-outlined text-[24px]">menu</span></button>
+        <div className="flex items-center gap-2 min-w-0 flex-1 font-headline text-[11px] uppercase tracking-widest text-[#635D5C]">
           {crumbs.map((c, i) => (
-            <span key={i} className="contents">
-              {i > 0 && <span className="text-[#B6ACA7]">/</span>}
-              <span className={i === crumbs.length - 1 ? "text-[#12100E] font-semibold" : ""}>{c}</span>
+            <span key={i} className={`contents${i === crumbs.length - 1 ? "" : " max-md:hidden"}`}>
+              {i > 0 && <span className="text-[#B6ACA7] max-md:hidden">/</span>}
+              <span className={i === crumbs.length - 1 ? "text-[#12100E] font-semibold min-w-0 truncate" : ""}>{c}</span>
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 font-headline text-[10px] tracking-widest text-[#635D5C]"><span className="w-2 h-2 rounded-full bg-[#635D5C]" />VAULT CONNECTED</div>
-          <div className="h-4 w-px bg-[#dfcdc7]" />
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="flex max-md:hidden items-center gap-2 font-headline text-[10px] tracking-widest text-[#635D5C]"><span className="w-2 h-2 rounded-full bg-[#635D5C]" />VAULT CONNECTED</div>
+          <div className="h-4 w-px bg-[#dfcdc7] max-md:hidden" />
           <div className="flex items-center gap-2">
-            <div className="flex flex-col text-right"><span className="font-headline text-[11px] tracking-wider font-semibold text-[#231A16] uppercase">{user.name}</span><span className="font-headline text-[9px] text-[#635D5C] uppercase">{user.role === "ADMIN" ? "Administrator" : "Editor"}</span></div>
+            <div className="flex max-sm:hidden flex-col text-right"><span className="font-headline text-[11px] tracking-wider font-semibold text-[#231A16] uppercase">{user.name}</span><span className="font-headline text-[9px] text-[#635D5C] uppercase">{user.role === "ADMIN" ? "Administrator" : "Editor"}</span></div>
             <div className="w-8 h-8 rounded-full bg-[#12100E] flex items-center justify-center"><span className="font-headline text-[10px] text-[#FAF4F0]">{initials}</span></div>
           </div>
           <SignOutButton />
         </div>
       </header>
-      <div className="ml-20 pt-16 min-h-screen flex flex-col">{children}</div>
+      <div className="md:ml-20 pt-16 min-h-screen flex flex-col">{children}</div>
       <Toaster />
     </div>
   );

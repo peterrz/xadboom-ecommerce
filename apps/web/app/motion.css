@@ -200,6 +200,38 @@
   will-change: opacity, transform;
 }
 
+/* Long rolling-button labels must wrap instead of pushing the page wider on phones. */
+@media (max-width: 639px) {
+  .xdm-roll { max-width: 100%; }
+  .xdm-roll__label { white-space: normal; }
+}
+
+/* Phone bottom navigation: the active pill glides between tabs across full page loads (cross-document view transition). */
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .xdm-bottom-nav { view-transition-name: xdm-bottom-nav; }
+  .xdm-tab-active { view-transition-name: xdm-tab-active; }
+  ::view-transition-group(xdm-tab-active) {
+    animation-duration: 420ms;
+    animation-timing-function: var(--xdm-ease-out);
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation-duration: 200ms; }
+}
+
+/* Modals become bottom-sheet drawers on phones (layout classes sit on the markup). */
+@keyframes xdm-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (max-width: 767px) {
+  #inquiry-modal:not(.hidden) > div,
+  #manual-inquiry-modal:not(.hidden) > div {
+    animation: xdm-sheet-up 300ms var(--xdm-ease-out);
+  }
+}
+
 /* --------------------------------------------------------------------------
    6. Reduced motion: disable all motion, snap to final state.
    -------------------------------------------------------------------------- */
