@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import type { ShellCounts } from "./admin-types";
 import type { ProfileDesigner } from "@/components/designer/designer-profile";
-import type { PieceCard, AdminPieces, PieceFormData, PublicOrder, PieceFormOptions, CatalogData, DesignerRow, FeaturedData, PieceDetail, PriceSettings, SessionUser } from "./types";
+import type { PieceCard, AdminPieces, PieceFormData, PublicOrder, PieceFormOptions, CatalogData, DesignerRow, FeaturedData, PieceDetail, PriceSettings, Profile, SessionUser } from "./types";
 
 // Server-side (SSR) calls go straight to the API service; the browser uses the same-origin /api rewrite.
 const API_URL = process.env.API_URL ?? "http://localhost:4000";
@@ -87,4 +87,5 @@ export const api = {
     return data;
   },
   me: async () => (await get<{ user: SessionUser }>("/auth/me", { auth: true }))?.user ?? null,
+  profile: async () => await get<Profile>("/auth/profile", { auth: true }),
 };

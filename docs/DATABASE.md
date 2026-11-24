@@ -12,7 +12,7 @@ either that script **or** `prisma migrate deploy` on a database, never both.
 | Table | Purpose | Key points |
 |---|---|---|
 | `Settings` | One row (`id = 1`): currency mode (USD / TOMAN / BOTH), USD→Toman rate, cart lock minutes | All prices are stored in **USD cents**; Toman is derived at display time |
-| `User` | Admins, editors and collectors | `role`, `kycStatus`, `tier`, `regionHub`; password stored as a hash; `lastActiveAt` |
+| `User` | Admins, editors and collectors | `role`, `kycStatus`, `tier`, `regionHub`; saved delivery details (`phone`, `shipCountry`, `shipCity`, `shipAddress`) that pre-fill checkout; password stored as a hash; `lastActiveAt` |
 | `Designer` | Collaborating architects/studios | Directory fields + the profile-page fields (tagline, practice, landmark works, statement, biography, monograph image, milestones, run note); `published`, `sortOrder` |
 | `Category` | Typologies (Seating, Tables…) | `dimensionColumns` (JSON) drives the Excel dimension template |
 | `Piece` | A product design | `sku`, `slug`, price (`priceUsdCents`, optional `priceTomanOverride`), dimensions, weight, `specs` (JSON), editorial fields (`storyTitle`, `story`, `quote`, `quoteBy`), `status` (DRAFT/PUBLISHED/ARCHIVED), soft delete (`deletedAt`) |

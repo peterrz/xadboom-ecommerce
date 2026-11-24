@@ -14,12 +14,13 @@ export function CheckoutPage() {
   const [currency, setCurrency] = useState<"USD" | "TOMAN">("USD");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [me, setMe] = useState<{ name: string; email: string } | null>(null);
+  // signed-in collectors: name, email and the saved delivery details are filled in for them
+  const [me, setMe] = useState<{ name: string; email: string; phone: string | null; country: string | null; city: string | null; address: string | null } | null>(null);
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/profile")
       .then((r) => (r.ok ? r.json() : null))
-      .then((j) => j?.user && setMe({ name: j.user.name, email: j.user.email }))
+      .then((j) => j?.email && setMe({ name: j.name, email: j.email, phone: j.phone, country: j.country, city: j.city, address: j.address }))
       .catch(() => {});
   }, []);
 
@@ -42,6 +43,7 @@ export function CheckoutPage() {
           city: f.get("city"),
           address: f.get("address"),
           currency: chooseCurrency ? currency : undefined,
+          saveToProfile: me ? f.get("saveToProfile") === "on" : undefined,
         }),
       });
       const json = await res.json().catch(() => null);
@@ -77,32 +79,44 @@ export function CheckoutPage() {
         ) : (
           <div className="grid gap-10 lg:grid-cols-12">
             <form onSubmit={submit} className="space-y-5 lg:col-span-7">
-              <div className="grid gap-5 md:grid-cols-2">
+              <div key={me ? "signed-in" : "guest"} className="grid gap-5 md:grid-cols-2">
                 <div>
                   <label className={label} htmlFor="name">Full name / practice *</label>
-                  <input id="name" name="name" key={`n-${me?.name ?? ""}`} defaultValue={me?.name ?? ""} required autoComplete="name" className={field} />
+                  <input id="name" name="name" defaultValue={me?.name ?? ""} required autoComplete="name" className={field} />
                 </div>
                 <div>
                   <label className={label} htmlFor="email">Email *</label>
-                  <input id="email" name="email" key={`e-${me?.email ?? ""}`} defaultValue={me?.email ?? ""} type="email" required autoComplete="email" className={field} />
+                  <input id="email" name="email" defaultValue={me?.email ?? ""} type="email" required autoComplete="email" className={field} />
                 </div>
                 <div>
                   <label className={label} htmlFor="phone">Telephone</label>
-                  <input id="phone" name="phone" type="tel" autoComplete="tel" className={field} />
+                  <input id="phone" name="phone" type="tel" defaultValue={me?.phone ?? ""} autoComplete="tel" className={field} />
                 </div>
                 <div>
                   <label className={label} htmlFor="country">Country *</label>
-                  <input id="country" name="country" required autoComplete="country-name" className={field} />
+                  <input id="country" name="country" defaultValue={me?.country ?? ""} required autoComplete="country-name" className={field} />
                 </div>
                 <div>
                   <label className={label} htmlFor="city">City *</label>
-                  <input id="city" name="city" required autoComplete="address-level2" className={field} />
+                  <input id="city" name="city" defaultValue={me?.city ?? ""} required autoComplete="address-level2" className={field} />
                 </div>
                 <div className="md:col-span-2">
                   <label className={label} htmlFor="address">Delivery address (crated white-glove freight) *</label>
-                  <textarea id="address" name="address" required rows={3} autoComplete="street-address" className={field} />
+                  <textarea id="address" name="address" defaultValue={me?.address ?? ""} required rows={3} autoComplete="street-address" className={field} />
                 </div>
               </div>
+
+              {me && (
+                <label className="flex items-start gap-3 text-sm text-[#4a423d]">
+                  <input type="checkbox" name="saveToProfile" defaultChecked className="mt-1" />
+                  <span>
+                    Save these details to my account for next time.{" "}
+                    <a href="/account#my-details" className="underline">
+                      Edit anytime
+                    </a>
+                  </span>
+                </label>
+              )}
 
               {chooseCurrency && (
                 <fieldset className="rounded-xl border border-[#e2cecb] bg-[#fff1ec] p-4">

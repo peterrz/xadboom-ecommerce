@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, Res } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Patch, Post, Res } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import type { Response } from "express";
 import { z } from "zod";
@@ -18,6 +18,24 @@ const registerSchema = z.object({
   password: z.string().min(8, "Use at least 8 characters").max(200),
 });
 type RegisterBody = z.infer<typeof registerSchema>;
+
+// "" clears a field, a missing field leaves it unchanged
+const optText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .transform((v) => (v === "" ? null : v))
+    .nullish();
+const profileSchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  phone: optText(40),
+  studio: optText(160),
+  country: optText(80),
+  city: optText(80),
+  address: optText(500),
+});
+type ProfileBody = z.infer<typeof profileSchema>;
 
 const cookieOptions = () => ({
   httpOnly: true,
@@ -60,5 +78,18 @@ export class AuthController {
   @Auth()
   me(@CurrentUser() user: AuthUser) {
     return { user };
+  }
+
+  @Get("profile")
+  @Auth()
+  profile(@CurrentUser() user: AuthUser) {
+    return this.auth.profile(user.id);
+  }
+
+  @Patch("profile")
+  @Auth()
+  @HttpCode(200)
+  updateProfile(@CurrentUser() user: AuthUser, @Body(new ZodPipe(profileSchema)) body: ProfileBody) {
+    return this.auth.updateProfile(user.id, body);
   }
 }

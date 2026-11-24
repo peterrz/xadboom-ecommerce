@@ -45,6 +45,8 @@ const checkoutSchema = z.object({
   city: z.string().trim().min(1).max(80),
   address: z.string().trim().min(1).max(500),
   currency: z.enum(["USD", "TOMAN"]).optional(),
+  // signed-in collectors: keep these delivery details on the account for the next order
+  saveToProfile: z.boolean().optional(),
 });
 type CheckoutBody = z.infer<typeof checkoutSchema>;
 const addSchema = z.object({ slug: z.string().min(1).max(120) });
@@ -248,6 +250,13 @@ export class CommerceService implements OnModuleInit, OnModuleDestroy {
       await tx.edition.updateMany({ where: { id: { in: reservations.map((r) => r.editionId) } }, data: { reservedUntil: dueAt } });
       return o;
     });
+
+    if (userId && body.saveToProfile) {
+      // best effort: a failure here must never block the order that was just placed
+      await db.user
+        .update({ where: { id: userId }, data: { phone: body.phone ?? undefined, shipCountry: body.country, shipCity: body.city, shipAddress: body.address } })
+        .catch((e) => this.log.warn(`could not save delivery details for ${userId}: ${e instanceof Error ? e.message : e}`));
+    }
 
     const payable: PayableOrder = { number, currency, totalAmount: total, collectorEmail: body.email, collectorPhone: body.phone ?? null };
     const base = process.env.APP_URL ?? "http://localhost:3000";

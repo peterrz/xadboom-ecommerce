@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { ProfileForm } from "@/components/account/profile-form";
 import { AccountSignOut } from "@/components/account/sign-out";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
@@ -30,7 +31,7 @@ const STATUS: Record<string, string> = {
 export default async function AccountPage() {
   const user = await api.me();
   if (!user) redirect("/login?next=/account");
-  const orders = await api.adminGet<MyOrder[]>("/orders/mine");
+  const [orders, profile] = await Promise.all([api.adminGet<MyOrder[]>("/orders/mine"), api.profile()]);
 
   return (
     <div className="theme-home page-home min-h-screen">
@@ -50,6 +51,8 @@ export default async function AccountPage() {
             <AccountSignOut />
           </div>
         </div>
+
+        {profile && <ProfileForm profile={profile} />}
 
         {orders.length === 0 ? (
           <div className="rounded-2xl border border-[#e2cecb] bg-[#fff1ec] p-10 text-center">

@@ -27,6 +27,17 @@ export type PieceCard = {
   priceUnit: string;
 };
 
+/** The signed-in collector's own details; country/city/address are the saved delivery address. */
+export type Profile = {
+  name: string;
+  email: string;
+  phone: string | null;
+  studio: string | null;
+  country: string | null;
+  city: string | null;
+  address: string | null;
+};
+
 export type CatalogData = {
   cards: PieceCard[];
   total: number;

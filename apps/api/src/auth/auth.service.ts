@@ -12,6 +12,26 @@ const DUMMY_HASH = hashPassword("not-a-real-password");
 
 export type AuthUser = { id: string; email: string; name: string; role: Role };
 
+export type ProfileInput = {
+  name: string;
+  phone?: string | null;
+  studio?: string | null;
+  country?: string | null;
+  city?: string | null;
+  address?: string | null;
+};
+
+const PROFILE_SELECT = { name: true, email: true, phone: true, studio: true, shipCountry: true, shipCity: true, shipAddress: true } as const;
+const toProfile = (u: { name: string; email: string; phone: string | null; studio: string | null; shipCountry: string | null; shipCity: string | null; shipAddress: string | null }) => ({
+  name: u.name,
+  email: u.email,
+  phone: u.phone,
+  studio: u.studio,
+  country: u.shipCountry,
+  city: u.shipCity,
+  address: u.shipAddress,
+});
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -40,6 +60,21 @@ export class AuthService {
     });
     this.mail.welcome(user.email, user.name);
     return { token: await this.jwt.signAsync({ sub: user.id }), user };
+  }
+
+  /** The signed-in user's own details, including the saved delivery address. */
+  async profile(userId: string) {
+    return toProfile(await this.prisma.db.user.findUniqueOrThrow({ where: { id: userId }, select: PROFILE_SELECT }));
+  }
+
+  /** Self-service edit. Email, role and verification status are never changeable here. `undefined` leaves a field alone, `null` clears it. */
+  async updateProfile(userId: string, input: ProfileInput) {
+    const u = await this.prisma.db.user.update({
+      where: { id: userId },
+      data: { name: input.name, phone: input.phone, studio: input.studio, shipCountry: input.country, shipCity: input.city, shipAddress: input.address },
+      select: PROFILE_SELECT,
+    });
+    return toProfile(u);
   }
 
   /**
