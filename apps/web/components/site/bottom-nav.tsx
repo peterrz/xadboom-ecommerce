@@ -5,35 +5,50 @@ import { useCart } from "@/components/cart/cart-provider";
 
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
-type Tab = { key: string; href?: string; icon: string; label: string; match?: (p: string) => boolean };
+type Tab = { key: string; href?: string; icon: string; label: string; avatar?: string; match?: (p: string) => boolean };
 
-const TABS: Tab[] = [
+const BASE_TABS: Tab[] = [
   { key: "home", href: "/", icon: "home", label: "Home", match: (p) => p === "/" },
   { key: "designers", href: "/designers", icon: "architecture", label: "Designers", match: (p) => p.startsWith("/designers") },
   { key: "shop", href: "/catalog", icon: "chair", label: "Shop", match: (p) => p.startsWith("/catalog") || p.startsWith("/product") },
   { key: "bag", icon: "shopping_bag", label: "Bag" },
-  { key: "account", href: "/account", icon: "person", label: "Account", match: (p) => p.startsWith("/account") },
 ];
+
+const initialsOf = (name: string) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "XB";
 
 /**
  * Phone-only bottom navigation for the storefront (hidden from `md` up, where the header nav takes over).
  * Only the active tab shows its name. Pages are normal full loads (the motion scripts re-run on each), so the swipe between tabs is a
  * cross-document view transition: the active pill is a named element that morphs from the old tab to the new one (see motion.css).
  */
-export function BottomNav() {
+export function BottomNav({ user }: { user: { name: string } | null }) {
   const pathname = usePathname();
   const { cart, setOpen } = useCart();
+  // signed out: "Sign in" (also active on the sign-in / sign-up pages); signed in: the collector's own profile
+  const account: Tab = user
+    ? { key: "account", href: "/account", icon: "person", label: user.name.split(/\s+/)[0] || "Profile", avatar: initialsOf(user.name), match: (p) => p.startsWith("/account") }
+    : { key: "account", href: "/login?next=/account", icon: "login", label: "Sign in", match: (p) => p.startsWith("/login") || p.startsWith("/register") || p.startsWith("/account") };
+  const TABS = [...BASE_TABS, account];
 
   const inner = (t: Tab, active: boolean) => (
     <>
       <span className="relative flex items-center justify-center">
-        <span className="material-symbols-outlined text-[22px] leading-none">{t.icon}</span>
+        {t.avatar ? (
+          <span
+            className="w-[26px] h-[26px] rounded-full flex items-center justify-center font-['Space_Grotesk'] text-[10px] font-bold leading-none"
+            style={{ backgroundColor: active ? "#fff8f6" : "#0a0a0a", color: active ? "#0a0a0a" : "#fff8f6", transition: `background-color 260ms ${EASE}, color 260ms ${EASE}` }}
+          >
+            {t.avatar}
+          </span>
+        ) : (
+          <span className="material-symbols-outlined text-[22px] leading-none">{t.icon}</span>
+        )}
         {t.key === "bag" && cart.count > 0 && (
           <span className="absolute -top-1.5 -right-2.5 min-w-4 h-4 px-1 rounded-full bg-[#0a0a0a] text-[#fff8f6] text-[9px] leading-4 text-center font-mono">{cart.count}</span>
         )}
       </span>
       <span
-        className="overflow-hidden whitespace-nowrap font-['Space_Grotesk'] text-[11px] font-bold uppercase tracking-widest"
+        className="overflow-hidden text-ellipsis whitespace-nowrap font-['Space_Grotesk'] text-[11px] font-bold uppercase tracking-widest"
         style={{ maxWidth: active ? 96 : 0, marginLeft: active ? 8 : 0, opacity: active ? 1 : 0, transition: `max-width 380ms ${EASE}, margin 380ms ${EASE}, opacity 260ms ${EASE}` }}
       >
         {t.label}

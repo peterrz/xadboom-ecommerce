@@ -16,3 +16,6 @@ docs/PLAN.md
 
 # local dev database files
 /.local/
+
+# local-only generated schema diagram
+docs/database-schema.html
